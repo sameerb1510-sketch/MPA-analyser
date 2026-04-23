@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Marine Protected Area Analyser — Interactive ocean conservation dashboard. Explore MPA coverage, critical habitats, and gap analysis for SDG 14 Life Below Water." />
+  <meta name="theme-color" content="#020B18" />
+  <title>MPA Analyser | Marine Protected Area Dashboard</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+
+  <!-- Three.js and Globe.gl -->
+  <script src="https://unpkg.com/three"></script>
+  <script src="https://unpkg.com/globe.gl"></script>
+
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ═══════════════════ NAVIGATION ═══════════════════ -->
+  <nav id="navbar">
+    <div class="nav-brand">
+      <span class="nav-title">MPA Analyser</span>
+    </div>
+    <div class="nav-links">
+      <a href="#overview" class="nav-link" id="nav-overview">Overview</a>
+      <a href="#map-section" class="nav-link" id="nav-map">Ocean Map</a>
+      <a href="#critical-section" class="nav-link" id="nav-critical">Critical Habitat</a>
+      <a href="#gap-section" class="nav-link" id="nav-gap">Gap Analysis</a>
+    </div>
+    <div class="nav-right">
+      <button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()" title="Switch to light mode">
+        <svg id="theme-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+      </button>
+      <button class="nav-reset-btn" id="nav-reset-btn" onclick="resetState()" title="Reset all MPA changes">↺ Reset</button>
+    </div>
+  </nav>
+
+
+
+  <!-- ═══════════════════ HERO ═══════════════════ -->
+  <section id="hero">
+    <!-- Background video -->
+    <video id="hero-video" autoplay muted loop playsinline preload="auto">
+      <source src="VID_20260422_151632.mp4" type="video/mp4" />
+    </video>
+    <div class="hero-overlay"></div>
+
+    <div class="hero-content">
+      <div class="hero-eyebrow">
+        <span class="eyebrow-dot"></span>
+        <span>SDG 14 — Life Below Water</span>
+      </div>
+
+      <h1 class="hero-title">
+        Marine Protected<br />
+        <span class="gradient-text">Area Analyser</span>
+      </h1>
+
+      <p class="hero-subtitle">
+        Explore ocean biodiversity, identify critical habitats,<br />
+        and expand marine protection coverage in real-time.
+      </p>
+
+      <div class="hero-stats-bar" id="hero-stats-bar">
+        <div class="hero-stat">
+          <div class="hero-stat-value" id="hero-coverage">0%</div>
+          <div class="hero-stat-label">MPA Coverage</div>
+        </div>
+        <div class="hero-divider"></div>
+        <div class="hero-stat">
+          <div class="hero-stat-value" id="hero-total">0</div>
+          <div class="hero-stat-label">Ocean Zones</div>
+        </div>
+        <div class="hero-divider"></div>
+        <div class="hero-stat">
+          <div class="hero-stat-value" id="hero-critical">0</div>
+          <div class="hero-stat-label">Critical Zones</div>
+        </div>
+        <div class="hero-divider"></div>
+        <div class="hero-stat">
+          <div class="hero-stat-value" id="hero-protected">0</div>
+          <div class="hero-stat-label">Protected</div>
+        </div>
+      </div>
+
+      <button class="hero-cta" id="hero-cta-btn" onclick="smoothScrollTo(document.getElementById('overview'),750)">
+        <span>Explore the Ocean</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+      </button>
+    </div>
+
+    <div class="scroll-indicator">
+      <div class="scroll-line"></div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════ OVERVIEW STATS ═══════════════════ -->
+  <div id="overview-wrapper" class="wave-mask">
+  <!-- Wave: hero → overview -->
+  <div class="glowing-wave" id="wave-overview" aria-hidden="true">
+    <svg viewBox="0 0 1440 80" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><path d="M0,0 C240,80 480,20 720,50 C960,80 1200,10 1440,50" fill="none"/></svg>
+  </div>
+  <section id="overview" class="bg-section">
+    <div id="particles-container" aria-hidden="true"></div>
+    <div class="section-header reveal-up">
+      <div class="section-tag">OVERVIEW</div>
+      <h2 class="section-title">Ocean at a Glance</h2>
+      <p class="section-subtitle">Real-time metrics across all 30 monitored ocean grid zones</p>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card glass-card reveal-up" data-delay="0">
+        <div class="stat-card-icon" style="--icon-clr:#00D4FF">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+        </div>
+        <div class="stat-card-value" id="stat-coverage">--%</div>
+        <div class="stat-card-label">Critical Habitat Coverage</div>
+        <div class="stat-bar"><div class="stat-bar-fill cyan" id="fill-coverage"></div></div>
+        <div class="stat-card-sub" id="sub-coverage">of critical habitat area (km²) protected</div>
+      </div>
+
+      <div class="stat-card glass-card reveal-up" data-delay="100">
+        <div class="stat-card-icon" style="--icon-clr:#00FFD1">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        </div>
+        <div class="stat-card-value" id="stat-protected">--</div>
+        <div class="stat-card-label">Zones Under Protection</div>
+        <div class="stat-bar"><div class="stat-bar-fill teal" id="fill-protected"></div></div>
+        <div class="stat-card-sub">out of 30 total zones</div>
+      </div>
+
+      <div class="stat-card glass-card reveal-up" data-delay="200">
+        <div class="stat-card-icon" style="--icon-clr:#FF6B6B">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        </div>
+        <div class="stat-card-value" id="stat-critical">--</div>
+        <div class="stat-card-label">Critical Habitat Zones</div>
+        <div class="stat-bar"><div class="stat-bar-fill coral" id="fill-critical"></div></div>
+        <div class="stat-card-sub">high richness + high pressure</div>
+      </div>
+
+      <div class="stat-card glass-card reveal-up" data-delay="300">
+        <div class="stat-card-icon" style="--icon-clr:#FFB347">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        </div>
+        <div class="stat-card-value" id="stat-unprotected">--</div>
+        <div class="stat-card-label">Unprotected Critical Zones</div>
+        <div class="stat-bar"><div class="stat-bar-fill amber" id="fill-unprotected"></div></div>
+        <div class="stat-card-sub">requiring urgent action</div>
+      </div>
+
+      <div class="stat-card glass-card reveal-up" data-delay="400">
+        <div class="stat-card-icon" style="--icon-clr:#00FFD1">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z"/></svg>
+        </div>
+        <div class="stat-card-value" id="stat-area-km">--</div>
+        <div class="stat-card-label">Critical Habitat Protected (km²)</div>
+        <div class="stat-bar"><div class="stat-bar-fill teal" id="fill-area"></div></div>
+        <div class="stat-card-sub">critical habitat area under MPA</div>
+      </div>
+    </div>
+  </section>
+  </div><!-- /overview-wrapper -->
+
+  <!-- ═══════════════════ INTERACTIVE MAP ═══════════════════ -->
+  <section id="map-section" class="wave-mask bg-section">
+    <!-- Wave: overview → map -->
+    <div class="glowing-wave" id="wave-map" aria-hidden="true">
+      <svg viewBox="0 0 1440 80" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><path d="M0,30 C180,80 360,0 540,40 C720,80 900,0 1080,35 C1260,70 1380,10 1440,30" fill="none"/></svg>
+    </div>
+    <div class="section-header reveal-up">
+      <div class="section-tag">INTERACTIVE MAP</div>
+      <h2 class="section-title">Ocean Zone Explorer</h2>
+      <p class="section-subtitle">Click any unprotected zone to designate it as a Marine Protected Area</p>
+    </div>
+
+    <div class="map-container reveal-up">
+      <!-- Legend -->
+      <div class="map-legend">
+        <button class="filter-btn" id="filter-protected" data-filter="protected" onclick="setFilter('protected')"><div class="legend-dot protected-dot"></div><span>Protected MPA</span></button>
+        <button class="filter-btn" id="filter-critical"  data-filter="critical"  onclick="setFilter('critical')"><div class="legend-dot critical-dot"></div><span>Critical Unprotected</span></button>
+        <button class="filter-btn" id="filter-moderate"  data-filter="moderate"  onclick="setFilter('moderate')"><div class="legend-dot moderate-dot"></div><span>Moderate Risk</span></button>
+        <button class="filter-btn" id="filter-low"       data-filter="low"       onclick="setFilter('low')"><div class="legend-dot low-dot"></div><span>Low Priority</span></button>
+      </div>
+
+
+      <!-- 3D Globe Container -->
+      <div id="globe-container" class="globe-wrapper"></div>
+
+      <!-- Zone Panel (list + detail) -->
+      <div class="zone-panel glass-card" id="zone-panel">
+        <div class="zone-panel-hdr">
+          <span class="zone-panel-count" id="zone-panel-count">30 ZONES</span>
+        </div>
+        <div class="zone-list-scroll" id="zone-list"><!-- Rendered by JS --></div>
+        <div class="zone-detail-block" id="zone-detail" style="display:none">
+          <div class="zd-name" id="zd-name"></div>
+          <div class="zd-meta" id="zd-meta"></div>
+          <div class="zd-metrics-row">
+            <div class="zd-mc">
+              <div class="zd-mc-lbl">Species richness</div>
+              <div class="zd-mc-val" id="zd-richness"></div>
+            </div>
+            <div class="zd-mc">
+              <div class="zd-mc-lbl">Fishing pressure</div>
+              <div class="zd-mc-val" id="zd-pressure"></div>
+            </div>
+          </div>
+          <div class="zd-extra-row">
+            <div class="zd-extra"><span class="zd-extra-lbl">Area</span><span class="zd-extra-val" id="zd-area"></span></div>
+            <div class="zd-extra"><span class="zd-extra-lbl">Depth</span><span class="zd-extra-val" id="zd-depth"></span></div>
+            <div class="zd-extra"><span class="zd-extra-lbl">Habitat</span><span class="zd-extra-val" id="zd-habitat"></span></div>
+          </div>
+          <button class="protect-btn btn-add" onclick="toggleProtection()">🛡️ Add MPA Protection</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════ CRITICAL HABITAT ═══════════════════ -->
+  <section id="critical-section" class="wave-mask bg-section">
+    <!-- Wave: map → critical -->
+    <div class="glowing-wave" id="wave-critical" aria-hidden="true">
+      <svg viewBox="0 0 1440 80" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><path d="M0,50 C300,0 600,80 900,30 C1100,0 1300,60 1440,20" fill="none"/></svg>
+    </div>
+    <div class="section-header reveal-up">
+      <div class="section-tag">CRITICAL HABITAT</div>
+      <h2 class="section-title">High-Priority Zones</h2>
+      <p class="section-subtitle">Zones where species richness ≥ 7 AND fishing pressure ≥ 7 — the most vulnerable ecosystems</p>
+    </div>
+    <div class="critical-grid" id="critical-grid">
+      <!-- Rendered by JS -->
+    </div>
+  </section>
+
+  <!-- ═══════════════════ GAP ANALYSIS ═══════════════════ -->
+  <section id="gap-section" class="wave-mask bg-section">
+    <!-- Wave: critical → gap -->
+    <div class="glowing-wave" id="wave-gap" aria-hidden="true">
+      <svg viewBox="0 0 1440 80" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><path d="M0,20 C360,80 720,0 1080,50 C1260,70 1380,20 1440,40" fill="none"/></svg>
+    </div>
+    <div class="section-header reveal-up">
+      <div class="section-tag">GAP ANALYSIS</div>
+      <h2 class="section-title">Top 5 Conservation Gaps</h2>
+      <p class="section-subtitle">Unprotected critical zones ranked by conservation score — where intervention is needed most</p>
+    </div>
+
+    <div class="bento-grid" id="gap-bento-grid">
+      <!-- Rendered by JS -->
+    </div>
+    <div style="text-align:center; margin-top: 50px;" class="reveal-up">
+      <button class="bento-action-btn" onclick="autoResolveGaps()">Auto-Resolve Top 5 Gaps</button>
+    </div>
+  </section>
+
+  <!-- ═══════════════════ FOOTER ═══════════════════ -->
+  <footer id="footer">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <span>MPA Analyser</span>
+      </div>
+      <p class="footer-sub">Digital Green Summit · SDG 14 — Life Below Water</p>
+      <p class="footer-dept">Department of Computer Science · First Year Web Development Exhibition</p>
+    </div>
+  </footer>
+
+  <!-- Toast -->
+  <div class="toast" id="toast">
+    <span class="toast-icon">🛡️</span>
+    <span class="toast-msg" id="toast-msg">Zone protected!</span>
+  </div>
+
+  <!-- Scroll Progress Nav -->
+  <nav id="scroll-nav" aria-label="Page sections">
+    <button class="snav-dot active" data-target="hero"             data-label="Home"></button>
+    <button class="snav-dot"        data-target="overview"         data-label="Overview"></button>
+    <button class="snav-dot"        data-target="map-section"      data-label="Ocean Map"></button>
+    <button class="snav-dot"        data-target="critical-section" data-label="Critical Habitat"></button>
+    <button class="snav-dot"        data-target="gap-section"      data-label="Gap Analysis"></button>
+  </nav>
+
+  <script src="app.js"></script>
+</body>
+</html>

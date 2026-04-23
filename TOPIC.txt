@@ -1,0 +1,40 @@
+﻿Digital Green Summit
+
+ Digital Green Summit 
+Where Code Meets Sustainability 
+OBJECTIVES OF THE ACTIVITY 
+The Digital Green Summit is a first-year project exhibition where students build dynamic web applications using HTML, CSS, and JavaScript to address real-world sustainable development challenges. The following objectives guide the activity: 
+• Apply technical skills in context — motivate students to use HTML, CSS, and JavaScript beyond textbook exercises on real-world problems. 
+• Build SDG awareness — expose students to the UN Sustainable Development Goals and demonstrate how technology addresses them directly. 
+• Develop problem-solving thinking — train students to decompose a sustainability challenge into data, logic, and UI layers. 
+• Practice data-driven design — work with real datasets, parse and transform data, and present insights meaningfully through interactive tools. 
+• Foster collaboration and ownership — simulate a real product development cycle with a brief, deadline, peer review, and live demo. 
+• Develop communication skills — explain technical solutions clearly to non-technical audiences such as judges, faculty, and visitors. 
+• Introduce algorithmic complexity — implement sorting, simulation, regression, and graph logic at an appropriate first-year level. 
+• Inspire civic tech engagement — demonstrate that software skills can contribute meaningfully to public and environmental good. 
+# Criterion Marks Description 1 Functionality & Correctness 30 Does the application work as described? Are features complete and bug-free? 2 Sustainability Relevance 20 Is the problem meaningfully connected to an SDG? Does the app provide real insights? 3 Data Use & Visualisation 20 Quality of dataset integration, accuracy of computation, and clarity of visual output. 4 UI/UX & Design 15 Clarity, usability, visual design, and overall user experience of the application. 5 Presentation & Explanation 15 Ability to explain the problem, solution, and technical decisions clearly to judges. 
+EXPECTED OUTCOMES 
+For Students 
+• A portfolio-ready web application built on a real-world problem statement. 
+• Hands-on proficiency with DOM manipulation, data parsing, and dynamic rendering in vanilla JavaScript. 
+• Experience translating a dataset into meaningful user-facing insights through charts, maps, calculators, or simulators. 
+• Improved confidence in presenting and defending technical decisions to judges, faculty, and peers. 
+• Awareness of at least one SDG domain and its technology-driven solutions. 
+• Early exposure to algorithmic thinking through sorting, simulation, scoring logic, and statistical modelling. 
+• Peer learning through the exhibition — observing diverse approaches to similar sustainability problems 
+
+
+
+
+
+Department of Computer Science | First Year Web Development Exhibition | Page 29 of 36 
+#45 Marine Protected Area Analyser BIODIVERSITY 
+SDG 14 — Life Below Water Problem Description 
+A dataset of ocean zones with species richness, fishing pressure, and existing MPA boundaries is provided on a simplified SVG map. Students calculate what percentage of critical habitat (high richness + high fishing pressure) is currently protected. Users can add new MPA zones by clicking on the map, and the coverage metric updates live. A gap analysis identifies the top 5 unprotected critical zones ranked by conservation value. Dataset Required 
+ocean_zones.json — 30 ocean grid zones with species richness score, fishing pressure (1–10), current MPA status, and zone area (km²). Expected Features 
+• SVG ocean zone map with colour coding 
+• Current MPA coverage percentage 
+• Click to add new MPA zones 
+• Coverage metric update on addition 
+• Critical habitat identification (richness × pressure) 
+• Top 5 unprotected critical zone list Technology & Concepts: SVG interactive zone toggling • Coverage percentage computation • Critical habitat scoring • Live metric update on user input • Gap analysis (rank unprotected by value) 
