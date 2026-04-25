@@ -105,7 +105,7 @@
     <svg viewBox="0 0 1440 80" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><path d="M0,0 C240,80 480,20 720,50 C960,80 1200,10 1440,50" fill="none"/></svg>
   </div>
   <section id="overview" class="bg-section">
-    <div id="particles-container" aria-hidden="true"></div>
+    <div class="particles-container" aria-hidden="true"></div>
     <div class="section-header reveal-up">
       <div class="section-tag">OVERVIEW</div>
       <h2 class="section-title">Ocean at a Glance</h2>
@@ -189,7 +189,13 @@
 
 
       <!-- 3D Globe Container -->
-      <div id="globe-container" class="globe-wrapper"></div>
+      <div id="globe-container" class="globe-wrapper">
+        <!-- Zoom controls -->
+        <div class="globe-zoom-controls">
+          <button class="globe-zoom-btn" id="globe-zoom-in"  onclick="zoomGlobe(-1)" title="Zoom in">+</button>
+          <button class="globe-zoom-btn" id="globe-zoom-out" onclick="zoomGlobe(+1)" title="Zoom out">−</button>
+        </div>
+      </div>
 
       <!-- Zone Panel (list + detail) -->
       <div class="zone-panel glass-card" id="zone-panel">
@@ -223,6 +229,7 @@
 
   <!-- ═══════════════════ CRITICAL HABITAT ═══════════════════ -->
   <section id="critical-section" class="wave-mask bg-section">
+    <div class="particles-container" data-count="80" aria-hidden="true"></div>
     <!-- Wave: map → critical -->
     <div class="glowing-wave" id="wave-critical" aria-hidden="true">
       <svg viewBox="0 0 1440 80" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><path d="M0,50 C300,0 600,80 900,30 C1100,0 1300,60 1440,20" fill="none"/></svg>
@@ -230,7 +237,7 @@
     <div class="section-header reveal-up">
       <div class="section-tag">CRITICAL HABITAT</div>
       <h2 class="section-title">High-Priority Zones</h2>
-      <p class="section-subtitle">Zones where species richness ≥ 7 AND fishing pressure ≥ 7 — the most vulnerable ecosystems</p>
+      <p class="section-subtitle">Zones with a weighted conservation score ≥ 75/100 (richness × 0.4 + pressure × 0.6) — the most vulnerable ecosystems</p>
     </div>
     <div class="critical-grid" id="critical-grid">
       <!-- Rendered by JS -->
@@ -239,6 +246,7 @@
 
   <!-- ═══════════════════ GAP ANALYSIS ═══════════════════ -->
   <section id="gap-section" class="wave-mask bg-section">
+    <div class="particles-container" data-count="80" aria-hidden="true"></div>
     <!-- Wave: critical → gap -->
     <div class="glowing-wave" id="wave-gap" aria-hidden="true">
       <svg viewBox="0 0 1440 80" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><path d="M0,20 C360,80 720,0 1080,50 C1260,70 1380,20 1440,40" fill="none"/></svg>

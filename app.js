@@ -20,58 +20,78 @@ const STORAGE_KEY = 'mpa-analyser-v1';
 function saveState() {
   const overrides = {};
   zones.forEach(z => { overrides[z.id] = z.mpaStatus; });
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(overrides));
+  sessionStorage.setItem(STORAGE_KEY, JSON.stringify(overrides));
 }
 
 function loadState(zonesArr) {
+  // Uses sessionStorage so changes only persist within the tab session.
+  // Fresh page loads always start from ocean_zones.json values.
   try {
-    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
+    const saved = JSON.parse(sessionStorage.getItem(STORAGE_KEY) || 'null');
     if (saved) zonesArr.forEach(z => { if (z.id in saved) z.mpaStatus = saved[z.id]; });
   } catch(e) { /* ignore */ }
 }
 
 function resetState() {
-  localStorage.removeItem(STORAGE_KEY);
+  sessionStorage.removeItem(STORAGE_KEY);
   location.reload();
 }
 
+
 const FALLBACK_DATA = { "zones": [
-  { "id": "Z01", "name": "Arctic Basin", "gridX": 0, "gridY": 0, "lat": 80, "lng": 0, "speciesRichness": 4, "fishingPressure": 2, "mpaStatus": false, "area": 35000, "depth": 3800, "habitatType": "deep_sea" },
-  { "id": "Z02", "name": "N. Atlantic Ridge", "gridX": 1, "gridY": 0, "lat": 45, "lng": -40, "speciesRichness": 6, "fishingPressure": 5, "mpaStatus": true, "area": 28000, "depth": 2100, "habitatType": "seamount" },
-  { "id": "Z03", "name": "Norwegian Sea", "gridX": 2, "gridY": 0, "lat": 68, "lng": 5, "speciesRichness": 5, "fishingPressure": 7, "mpaStatus": false, "area": 22000, "depth": 1800, "habitatType": "pelagic" },
-  { "id": "Z04", "name": "Barents Zone", "gridX": 3, "gridY": 0, "lat": 75, "lng": 40, "speciesRichness": 7, "fishingPressure": 8, "mpaStatus": false, "area": 18000, "depth": 350, "habitatType": "pelagic" },
-  { "id": "Z05", "name": "Greenland Current", "gridX": 4, "gridY": 0, "lat": 70, "lng": -20, "speciesRichness": 5, "fishingPressure": 3, "mpaStatus": true, "area": 31000, "depth": 2200, "habitatType": "deep_sea" },
-  { "id": "Z06", "name": "Labrador Basin", "gridX": 5, "gridY": 0, "lat": 55, "lng": -50, "speciesRichness": 3, "fishingPressure": 4, "mpaStatus": false, "area": 25000, "depth": 2900, "habitatType": "deep_sea" },
-  { "id": "Z07", "name": "N. Pacific Gyre", "gridX": 0, "gridY": 1, "lat": 30, "lng": -140, "speciesRichness": 3, "fishingPressure": 3, "mpaStatus": false, "area": 45000, "depth": 4200, "habitatType": "pelagic" },
-  { "id": "Z08", "name": "California Current", "gridX": 1, "gridY": 1, "lat": 35, "lng": -125, "speciesRichness": 8, "fishingPressure": 9, "mpaStatus": false, "area": 12000, "depth": 300, "habitatType": "kelp_forest" },
-  { "id": "Z09", "name": "Gulf of Mexico", "gridX": 2, "gridY": 1, "lat": 25, "lng": -90, "speciesRichness": 7, "fishingPressure": 8, "mpaStatus": true, "area": 15000, "depth": 450, "habitatType": "coral_reef" },
-  { "id": "Z10", "name": "Sargasso Sea", "gridX": 3, "gridY": 1, "lat": 28, "lng": -65, "speciesRichness": 6, "fishingPressure": 4, "mpaStatus": false, "area": 33000, "depth": 5000, "habitatType": "pelagic" },
-  { "id": "Z11", "name": "N. Mediterranean", "gridX": 4, "gridY": 1, "lat": 40, "lng": 15, "speciesRichness": 8, "fishingPressure": 9, "mpaStatus": false, "area": 8000, "depth": 500, "habitatType": "seagrass" },
-  { "id": "Z12", "name": "Black Sea Inlet", "gridX": 5, "gridY": 1, "lat": 43, "lng": 35, "speciesRichness": 5, "fishingPressure": 7, "mpaStatus": false, "area": 5000, "depth": 200, "habitatType": "seagrass" },
-  { "id": "Z13", "name": "Coral Triangle", "gridX": 0, "gridY": 2, "lat": -5, "lng": 120, "speciesRichness": 10, "fishingPressure": 9, "mpaStatus": false, "area": 9000, "depth": 200, "habitatType": "coral_reef" },
-  { "id": "Z14", "name": "Philippine Sea", "gridX": 1, "gridY": 2, "lat": 15, "lng": 130, "speciesRichness": 9, "fishingPressure": 7, "mpaStatus": true, "area": 14000, "depth": 800, "habitatType": "coral_reef" },
-  { "id": "Z15", "name": "South China Sea", "gridX": 2, "gridY": 2, "lat": 12, "lng": 115, "speciesRichness": 8, "fishingPressure": 10, "mpaStatus": false, "area": 11000, "depth": 350, "habitatType": "coral_reef" },
-  { "id": "Z16", "name": "Indian Ocean Mid", "gridX": 3, "gridY": 2, "lat": -15, "lng": 75, "speciesRichness": 6, "fishingPressure": 5, "mpaStatus": true, "area": 42000, "depth": 3800, "habitatType": "pelagic" },
-  { "id": "Z17", "name": "Arabian Sea", "gridX": 4, "gridY": 2, "lat": 15, "lng": 65, "speciesRichness": 7, "fishingPressure": 8, "mpaStatus": false, "area": 16000, "depth": 600, "habitatType": "pelagic" },
-  { "id": "Z18", "name": "Bay of Bengal", "gridX": 5, "gridY": 2, "lat": 12, "lng": 85, "speciesRichness": 8, "fishingPressure": 7, "mpaStatus": false, "area": 13000, "depth": 400, "habitatType": "mangrove" },
-  { "id": "Z19", "name": "Great Barrier W.", "gridX": 0, "gridY": 3, "lat": -18, "lng": 147, "speciesRichness": 9, "fishingPressure": 6, "mpaStatus": true, "area": 20000, "depth": 150, "habitatType": "coral_reef" },
-  { "id": "Z20", "name": "Coral Sea East", "gridX": 1, "gridY": 3, "lat": -15, "lng": 155, "speciesRichness": 8, "fishingPressure": 5, "mpaStatus": true, "area": 17000, "depth": 300, "habitatType": "coral_reef" },
-  { "id": "Z21", "name": "Tasman Basin", "gridX": 2, "gridY": 3, "lat": -35, "lng": 160, "speciesRichness": 5, "fishingPressure": 4, "mpaStatus": false, "area": 22000, "depth": 2800, "habitatType": "deep_sea" },
-  { "id": "Z22", "name": "Maldives Zone", "gridX": 3, "gridY": 3, "lat": 3, "lng": 73, "speciesRichness": 9, "fishingPressure": 8, "mpaStatus": false, "area": 7000, "depth": 100, "habitatType": "coral_reef" },
-  { "id": "Z23", "name": "Persian Gulf", "gridX": 4, "gridY": 3, "lat": 26, "lng": 52, "speciesRichness": 4, "fishingPressure": 9, "mpaStatus": false, "area": 6000, "depth": 50, "habitatType": "seagrass" },
-  { "id": "Z24", "name": "Red Sea", "gridX": 5, "gridY": 3, "lat": 20, "lng": 38, "speciesRichness": 8, "fishingPressure": 7, "mpaStatus": true, "area": 9500, "depth": 300, "habitatType": "coral_reef" },
-  { "id": "Z25", "name": "S. Pacific Gyre", "gridX": 0, "gridY": 4, "lat": -40, "lng": -120, "speciesRichness": 2, "fishingPressure": 1, "mpaStatus": false, "area": 50000, "depth": 4500, "habitatType": "pelagic" },
-  { "id": "Z26", "name": "Ross Sea", "gridX": 1, "gridY": 4, "lat": -75, "lng": -175, "speciesRichness": 7, "fishingPressure": 2, "mpaStatus": true, "area": 38000, "depth": 800, "habitatType": "deep_sea" },
-  { "id": "Z27", "name": "Weddell Sea", "gridX": 2, "gridY": 4, "lat": -70, "lng": -45, "speciesRichness": 6, "fishingPressure": 1, "mpaStatus": true, "area": 35000, "depth": 600, "habitatType": "deep_sea" },
-  { "id": "Z28", "name": "Antarctic Ridge", "gridX": 3, "gridY": 4, "lat": -60, "lng": 0, "speciesRichness": 5, "fishingPressure": 2, "mpaStatus": false, "area": 28000, "depth": 3200, "habitatType": "seamount" },
-  { "id": "Z29", "name": "Cape Basin", "gridX": 4, "gridY": 4, "lat": -35, "lng": 10, "speciesRichness": 6, "fishingPressure": 6, "mpaStatus": false, "area": 18000, "depth": 2100, "habitatType": "pelagic" },
-  { "id": "Z30", "name": "Benguela Current", "gridX": 5, "gridY": 4, "lat": -25, "lng": 12, "speciesRichness": 8, "fishingPressure": 7, "mpaStatus": false, "area": 12000, "depth": 200, "habitatType": "kelp_forest" }
+  { "id": "Z01", "name": "Arctic Basin", "gridX": 0, "gridY": 0, "lat": 80, "lng": 0, "speciesRichness": { "habitatComplexity": 3, "resourceAvailability": 4, "stability": 5 }, "fishingPressure": { "effort": 1, "frequency": 2, "gearImpact": "line" }, "mpaStatus": false, "area": 35000, "depth": 3800, "habitatType": "deep_sea" },
+  { "id": "Z02", "name": "N. Atlantic Ridge", "gridX": 1, "gridY": 0, "lat": 45, "lng": -40, "speciesRichness": { "habitatComplexity": 6, "resourceAvailability": 7, "stability": 5 }, "fishingPressure": { "effort": 5, "frequency": 4, "gearImpact": "nets" }, "mpaStatus": false, "area": 28000, "depth": 2100, "habitatType": "seamount" },
+  { "id": "Z03", "name": "Norwegian Sea", "gridX": 2, "gridY": 0, "lat": 68, "lng": 5, "speciesRichness": { "habitatComplexity": 5, "resourceAvailability": 6, "stability": 4 }, "fishingPressure": { "effort": 8, "frequency": 7, "gearImpact": "nets" }, "mpaStatus": false, "area": 22000, "depth": 1800, "habitatType": "pelagic" },
+  { "id": "Z04", "name": "Barents Zone", "gridX": 3, "gridY": 0, "lat": 75, "lng": 40, "speciesRichness": { "habitatComplexity": 7, "resourceAvailability": 7, "stability": 7 }, "fishingPressure": { "effort": 8, "frequency": 8, "gearImpact": "nets" }, "mpaStatus": false, "area": 18000, "depth": 350, "habitatType": "pelagic" },
+  { "id": "Z05", "name": "Greenland Current", "gridX": 4, "gridY": 0, "lat": 70, "lng": -20, "speciesRichness": { "habitatComplexity": 5, "resourceAvailability": 5, "stability": 5 }, "fishingPressure": { "effort": 3, "frequency": 3, "gearImpact": "line" }, "mpaStatus": false, "area": 31000, "depth": 2200, "habitatType": "deep_sea" },
+  { "id": "Z06", "name": "Labrador Basin", "gridX": 5, "gridY": 0, "lat": 55, "lng": -50, "speciesRichness": { "habitatComplexity": 3, "resourceAvailability": 3, "stability": 3 }, "fishingPressure": { "effort": 5, "frequency": 4, "gearImpact": "line" }, "mpaStatus": false, "area": 25000, "depth": 2900, "habitatType": "deep_sea" },
+  { "id": "Z07", "name": "N. Pacific Gyre", "gridX": 0, "gridY": 1, "lat": 30, "lng": -140, "speciesRichness": { "habitatComplexity": 2, "resourceAvailability": 3, "stability": 4 }, "fishingPressure": { "effort": 3, "frequency": 3, "gearImpact": "line" }, "mpaStatus": false, "area": 45000, "depth": 4200, "habitatType": "pelagic" },
+  { "id": "Z08", "name": "California Current", "gridX": 1, "gridY": 1, "lat": 35, "lng": -125, "speciesRichness": { "habitatComplexity": 9, "resourceAvailability": 8, "stability": 7 }, "fishingPressure": { "effort": 9, "frequency": 8, "gearImpact": "trawling" }, "mpaStatus": false, "area": 12000, "depth": 300, "habitatType": "kelp_forest" },
+  { "id": "Z09", "name": "Gulf of Mexico", "gridX": 2, "gridY": 1, "lat": 25, "lng": -90, "speciesRichness": { "habitatComplexity": 7, "resourceAvailability": 7, "stability": 7 }, "fishingPressure": { "effort": 8, "frequency": 8, "gearImpact": "nets" }, "mpaStatus": false, "area": 15000, "depth": 450, "habitatType": "coral_reef" },
+  { "id": "Z10", "name": "Sargasso Sea", "gridX": 3, "gridY": 1, "lat": 28, "lng": -65, "speciesRichness": { "habitatComplexity": 5, "resourceAvailability": 7, "stability": 6 }, "fishingPressure": { "effort": 5, "frequency": 4, "gearImpact": "line" }, "mpaStatus": false, "area": 33000, "depth": 5000, "habitatType": "pelagic" },
+  { "id": "Z11", "name": "N. Mediterranean", "gridX": 4, "gridY": 1, "lat": 40, "lng": 15, "speciesRichness": { "habitatComplexity": 8, "resourceAvailability": 8, "stability": 8 }, "fishingPressure": { "effort": 9, "frequency": 8, "gearImpact": "trawling" }, "mpaStatus": false, "area": 8000, "depth": 500, "habitatType": "seagrass" },
+  { "id": "Z12", "name": "Black Sea Inlet", "gridX": 5, "gridY": 1, "lat": 43, "lng": 35, "speciesRichness": { "habitatComplexity": 5, "resourceAvailability": 5, "stability": 5 }, "fishingPressure": { "effort": 8, "frequency": 7, "gearImpact": "nets" }, "mpaStatus": false, "area": 5000, "depth": 200, "habitatType": "seagrass" },
+  { "id": "Z13", "name": "Coral Triangle", "gridX": 0, "gridY": 2, "lat": -5, "lng": 120, "speciesRichness": { "habitatComplexity": 10, "resourceAvailability": 10, "stability": 10 }, "fishingPressure": { "effort": 9, "frequency": 9, "gearImpact": "trawling" }, "mpaStatus": false, "area": 9000, "depth": 200, "habitatType": "coral_reef" },
+  { "id": "Z14", "name": "Philippine Sea", "gridX": 1, "gridY": 2, "lat": 15, "lng": 130, "speciesRichness": { "habitatComplexity": 9, "resourceAvailability": 9, "stability": 9 }, "fishingPressure": { "effort": 7, "frequency": 8, "gearImpact": "purse_seine" }, "mpaStatus": true, "area": 14000, "depth": 800, "habitatType": "coral_reef" },
+  { "id": "Z15", "name": "South China Sea", "gridX": 2, "gridY": 2, "lat": 12, "lng": 115, "speciesRichness": { "habitatComplexity": 8, "resourceAvailability": 8, "stability": 8 }, "fishingPressure": { "effort": 10, "frequency": 10, "gearImpact": "trawling" }, "mpaStatus": false, "area": 11000, "depth": 350, "habitatType": "coral_reef" },
+  { "id": "Z16", "name": "Indian Ocean Mid", "gridX": 3, "gridY": 2, "lat": -15, "lng": 75, "speciesRichness": { "habitatComplexity": 5, "resourceAvailability": 7, "stability": 6 }, "fishingPressure": { "effort": 4, "frequency": 5, "gearImpact": "nets" }, "mpaStatus": false, "area": 42000, "depth": 3800, "habitatType": "pelagic" },
+  { "id": "Z17", "name": "Arabian Sea", "gridX": 4, "gridY": 2, "lat": 15, "lng": 65, "speciesRichness": { "habitatComplexity": 7, "resourceAvailability": 7, "stability": 7 }, "fishingPressure": { "effort": 8, "frequency": 7, "gearImpact": "trawling" }, "mpaStatus": true, "area": 16000, "depth": 600, "habitatType": "pelagic" },
+  { "id": "Z18", "name": "Bay of Bengal", "gridX": 5, "gridY": 2, "lat": 12, "lng": 85, "speciesRichness": { "habitatComplexity": 8, "resourceAvailability": 8, "stability": 8 }, "fishingPressure": { "effort": 7, "frequency": 8, "gearImpact": "nets" }, "mpaStatus": false, "area": 13000, "depth": 400, "habitatType": "mangrove" },
+  { "id": "Z19", "name": "Great Barrier W.", "gridX": 0, "gridY": 3, "lat": -18, "lng": 147, "speciesRichness": { "habitatComplexity": 10, "resourceAvailability": 9, "stability": 8 }, "fishingPressure": { "effort": 7, "frequency": 6, "gearImpact": "nets" }, "mpaStatus": false, "area": 20000, "depth": 150, "habitatType": "coral_reef" },
+  { "id": "Z20", "name": "Coral Sea East", "gridX": 1, "gridY": 3, "lat": -15, "lng": 155, "speciesRichness": { "habitatComplexity": 9, "resourceAvailability": 7, "stability": 8 }, "fishingPressure": { "effort": 5, "frequency": 5, "gearImpact": "nets" }, "mpaStatus": false, "area": 17000, "depth": 300, "habitatType": "coral_reef" },
+  { "id": "Z21", "name": "Tasman Basin", "gridX": 2, "gridY": 3, "lat": -35, "lng": 160, "speciesRichness": { "habitatComplexity": 4, "resourceAvailability": 5, "stability": 6 }, "fishingPressure": { "effort": 5, "frequency": 4, "gearImpact": "line" }, "mpaStatus": false, "area": 22000, "depth": 2800, "habitatType": "deep_sea" },
+  { "id": "Z22", "name": "Maldives Zone", "gridX": 3, "gridY": 3, "lat": 3, "lng": 73, "speciesRichness": { "habitatComplexity": 10, "resourceAvailability": 9, "stability": 8 }, "fishingPressure": { "effort": 8, "frequency": 8, "gearImpact": "nets" }, "mpaStatus": true, "area": 7000, "depth": 100, "habitatType": "coral_reef" },
+  { "id": "Z23", "name": "Persian Gulf", "gridX": 4, "gridY": 3, "lat": 26, "lng": 52, "speciesRichness": { "habitatComplexity": 3, "resourceAvailability": 4, "stability": 5 }, "fishingPressure": { "effort": 9, "frequency": 9, "gearImpact": "trawling" }, "mpaStatus": false, "area": 6000, "depth": 50, "habitatType": "seagrass" },
+  { "id": "Z24", "name": "Red Sea", "gridX": 5, "gridY": 3, "lat": 20, "lng": 38, "speciesRichness": { "habitatComplexity": 9, "resourceAvailability": 7, "stability": 8 }, "fishingPressure": { "effort": 8, "frequency": 7, "gearImpact": "nets" }, "mpaStatus": false, "area": 9500, "depth": 300, "habitatType": "coral_reef" },
+  { "id": "Z25", "name": "S. Pacific Gyre", "gridX": 0, "gridY": 4, "lat": -40, "lng": -120, "speciesRichness": { "habitatComplexity": 1, "resourceAvailability": 2, "stability": 3 }, "fishingPressure": { "effort": 1, "frequency": 1, "gearImpact": "line" }, "mpaStatus": false, "area": 50000, "depth": 4500, "habitatType": "pelagic" },
+  { "id": "Z26", "name": "Ross Sea", "gridX": 1, "gridY": 4, "lat": -75, "lng": -175, "speciesRichness": { "habitatComplexity": 7, "resourceAvailability": 7, "stability": 7 }, "fishingPressure": { "effort": 2, "frequency": 2, "gearImpact": "line" }, "mpaStatus": false, "area": 38000, "depth": 800, "habitatType": "deep_sea" },
+  { "id": "Z27", "name": "Weddell Sea", "gridX": 2, "gridY": 4, "lat": -70, "lng": -45, "speciesRichness": { "habitatComplexity": 6, "resourceAvailability": 6, "stability": 6 }, "fishingPressure": { "effort": 1, "frequency": 1, "gearImpact": "line" }, "mpaStatus": false, "area": 35000, "depth": 600, "habitatType": "deep_sea" },
+  { "id": "Z28", "name": "Antarctic Ridge", "gridX": 3, "gridY": 4, "lat": -60, "lng": 0, "speciesRichness": { "habitatComplexity": 5, "resourceAvailability": 5, "stability": 5 }, "fishingPressure": { "effort": 2, "frequency": 2, "gearImpact": "line" }, "mpaStatus": false, "area": 28000, "depth": 3200, "habitatType": "seamount" },
+  { "id": "Z29", "name": "Cape Basin", "gridX": 4, "gridY": 4, "lat": -35, "lng": 10, "speciesRichness": { "habitatComplexity": 6, "resourceAvailability": 6, "stability": 6 }, "fishingPressure": { "effort": 6, "frequency": 6, "gearImpact": "nets" }, "mpaStatus": false, "area": 18000, "depth": 2100, "habitatType": "pelagic" },
+  { "id": "Z30", "name": "Benguela Current", "gridX": 5, "gridY": 4, "lat": -25, "lng": 12, "speciesRichness": { "habitatComplexity": 8, "resourceAvailability": 8, "stability": 8 }, "fishingPressure": { "effort": 8, "frequency": 7, "gearImpact": "nets" }, "mpaStatus": false, "area": 12000, "depth": 200, "habitatType": "kelp_forest" }
 ] };
 
 // ── Helpers ───────────────────────────────────────────
 const $  = id => document.getElementById(id);
 const fmt = n => n.toLocaleString();
-const score = z => z.speciesRichness * z.fishingPressure;
+
+// ── Sub-factor scoring ────────────────────────────────
+const GEAR_MAP = { line: 3, nets: 6, purse_seine: 7, trawling: 10 };
+
+function fpScore(z) {
+  const fp = z.fishingPressure;
+  const raw = (fp.effort + fp.frequency + (GEAR_MAP[fp.gearImpact] || 5)) / 3;
+  return Math.min(10, raw);
+}
+
+function srScore(z) {
+  const sr = z.speciesRichness;
+  const raw = (sr.habitatComplexity + sr.resourceAvailability + sr.stability) / 3;
+  return Math.min(10, raw);
+}
+
+// Ranking score: pressure-biased (0.6) so most-fished zones surface first in Gap Analysis
+const score = z => parseFloat(((srScore(z) * 0.4 + fpScore(z) * 0.6) * 10).toFixed(2));
 
 // ── Custom Smooth Scroll (fixed 0.75s duration) ──────
 function smoothScrollTo(targetEl, duration = 750) {
@@ -93,7 +113,8 @@ function smoothScrollTo(targetEl, duration = 750) {
   }
   requestAnimationFrame(step);
 }
-const isCritical = z => z.speciesRichness >= 7 && z.fishingPressure >= 7;
+// Classification: zones with a combined weighted score >= 75/100 are critical
+const isCritical = z => score(z) >= 75;
 
 // ── Stats Engine ──────────────────────────────────────
 function computeStats() {
@@ -194,9 +215,9 @@ const HABITAT_EMOJI = {
 
 function zoneColors(z) {
   if (z.mpaStatus)    return { stroke: '#00E676' };       // protected
-  if (isCritical(z))  return { stroke: '#FF6B6B' };       // critical (R≥7 AND P≥7)
+  if (isCritical(z))  return { stroke: '#FF6B6B' };       // critical
   const s = score(z);
-  if (s >= 42 || z.fishingPressure >= 7) return { stroke: '#FFB347' };  // moderate
+  if (s >= 42 || fpScore(z) >= 7) return { stroke: '#FFB347' };  // moderate
   return { stroke: '#00D4FF' };                            // low priority
 }
 
@@ -206,8 +227,8 @@ function matchesFilter(z) {
   switch (activeFilter) {
     case 'protected': return z.mpaStatus;
     case 'critical':  return !z.mpaStatus && isCritical(z);
-    case 'moderate':  return !z.mpaStatus && !isCritical(z) && (score(z) >= 42 || z.fishingPressure >= 7);
-    case 'low':       return !z.mpaStatus && !isCritical(z) && score(z) < 42 && z.fishingPressure < 7;
+    case 'moderate':  return !z.mpaStatus && !isCritical(z) && (score(z) >= 42 || fpScore(z) >= 7);
+    case 'low':       return !z.mpaStatus && !isCritical(z) && score(z) < 42 && fpScore(z) < 7;
   }
   return true;
 }
@@ -244,13 +265,15 @@ function initGlobe() {
     .pointResolution(32)
     .pointColor(z => zoneColors(z).stroke)
     .pointLabel(z => {
-      const c = zoneColors(z).stroke;
-      const s = score(z);
+      const c  = zoneColors(z).stroke;
+      const s  = score(z);
+      const sr = srScore(z).toFixed(2);
+      const fp = fpScore(z).toFixed(2);
       return `
         <div style="background: rgba(4,13,26,0.9); padding: 10px; border-radius: 8px; border: 1px solid ${c}; color: #fff; font-family: 'Space Grotesk', sans-serif; box-shadow: 0 0 15px ${c}44; pointer-events: none;">
           <strong style="color:${c}; font-size: 14px;">${z.id} — ${z.name}</strong><br>
           <span style="font-size: 12px; color: #88A0C0;">Status: ${z.mpaStatus ? 'Protected' : 'Unprotected'}</span><br>
-          <span style="font-size: 12px; color: #88A0C0;">Score: ${s}</span>
+          <span style="font-size: 12px; color: #88A0C0;">R ${sr} · P ${fp} · Score: ${s}</span>
         </div>
       `;
     })
@@ -260,11 +283,15 @@ function initGlobe() {
         document.getElementById('zl-inline-detail').remove();
         selectedZone = null;
         document.querySelectorAll('.zl-item').forEach(l => l.classList.remove('zl-active'));
+        // Resume auto-rotation on deselect
+        globe.controls().autoRotate = true;
         updateGlobeData();
         return;
       }
 
       selectedZone = z;
+      // Stop auto-rotation when a zone is selected
+      globe.controls().autoRotate = false;
       const li = document.getElementById(`zli-${z.id}`);
       if (li) {
         document.querySelectorAll('.zl-item').forEach(l => l.classList.remove('zl-active'));
@@ -280,7 +307,10 @@ function initGlobe() {
   // Controls
   globe.controls().autoRotate = true;
   globe.controls().autoRotateSpeed = 0.5;
-  globe.controls().enableZoom = false; // Prevent zooming to keep layout fixed
+  globe.controls().enableZoom = true;         // Scroll-wheel zoom enabled
+  globe.controls().minDistance = 150;         // Can't zoom into the surface
+  globe.controls().maxDistance = 600;         // Can't zoom too far out
+  globe.controls().zoomSpeed   = 0.8;
 
   // Rings for Critical + Selected
   globe
@@ -317,6 +347,17 @@ function initGlobe() {
   updateGlobeData();
 }
 
+// ── Globe Zoom Buttons ────────────────────────────────
+function zoomGlobe(direction) {
+  if (!globe) return;
+  const pov = globe.pointOfView();
+  const step = 0.25;
+  const minAlt = 0.2;
+  const maxAlt = 4.0;
+  const newAlt = Math.min(maxAlt, Math.max(minAlt, pov.altitude + direction * step));
+  globe.pointOfView({ lat: pov.lat, lng: pov.lng, altitude: newAlt }, 350);
+}
+
 function updateGlobeData() {
   if (!globe) return;
   const filtered = zones.filter(matchesFilter);
@@ -326,10 +367,18 @@ function updateGlobeData() {
   globe.ringsData(filtered.filter(z => isCritical(z) || z.id === selectedZone?.id));
 }
 
+// ── Sub-factor toggle state ───────────────────────────
+let openSubfactor = null; // 'richness' | 'pressure' | null
+
 // ── Zone List inline detail injector ─────────────────
 function injectListDetail(z, afterItem) {
   document.getElementById('zl-inline-detail')?.remove();
-  const s = score(z);
+  openSubfactor = null;
+  const s   = score(z).toFixed(2);
+  const sr  = srScore(z).toFixed(2);
+  const fp  = fpScore(z).toFixed(2);
+  const gearNum = GEAR_MAP[z.fishingPressure.gearImpact] || 5;
+
   const statusTxt = z.mpaStatus
     ? '<span style="color:var(--green)">Protected</span>'
     : '<span style="color:var(--coral)">Unprotected</span>';
@@ -342,10 +391,30 @@ function injectListDetail(z, afterItem) {
   det.innerHTML = `
     <div class="zd-name">${z.name}</div>
     <div class="zd-meta"><span class="zd-zone-id">${z.id}</span> · ${statusTxt} · Score <strong>${s}</strong></div>
+
     <div class="zd-metrics-row">
-      <div class="zd-mc"><div class="zd-mc-lbl">Richness</div><div class="zd-mc-val">${z.speciesRichness}/10</div></div>
-      <div class="zd-mc"><div class="zd-mc-lbl">Pressure</div><div class="zd-mc-val">${z.fishingPressure}/10</div></div>
+      <div class="zd-mc zd-mc-toggle" id="sf-btn-richness" onclick="toggleSF('richness')">
+        <div class="zd-mc-lbl">Richness <span class="sf-arrow" id="sf-arrow-richness">▾</span></div>
+        <div class="zd-mc-val">${sr}/10</div>
+      </div>
+      <div class="zd-mc zd-mc-toggle" id="sf-btn-pressure" onclick="toggleSF('pressure')">
+        <div class="zd-mc-lbl">Pressure <span class="sf-arrow" id="sf-arrow-pressure">▾</span></div>
+        <div class="zd-mc-val">${fp}/10</div>
+      </div>
     </div>
+
+    <div class="zd-subfactors" id="sf-richness">
+      <div class="zd-sf-row"><span class="zd-sf-lbl">Habitat Complexity</span><span class="zd-sf-val">${z.speciesRichness.habitatComplexity}/10</span></div>
+      <div class="zd-sf-row"><span class="zd-sf-lbl">Resource Availability</span><span class="zd-sf-val">${z.speciesRichness.resourceAvailability}/10</span></div>
+      <div class="zd-sf-row"><span class="zd-sf-lbl">Environmental Stability</span><span class="zd-sf-val">${z.speciesRichness.stability}/10</span></div>
+    </div>
+
+    <div class="zd-subfactors" id="sf-pressure">
+      <div class="zd-sf-row"><span class="zd-sf-lbl">Effort</span><span class="zd-sf-val">${z.fishingPressure.effort}/10</span></div>
+      <div class="zd-sf-row"><span class="zd-sf-lbl">Frequency</span><span class="zd-sf-val">${z.fishingPressure.frequency}/10</span></div>
+      <div class="zd-sf-row"><span class="zd-sf-lbl">Gear Impact (${z.fishingPressure.gearImpact})</span><span class="zd-sf-val">${gearNum}/10</span></div>
+    </div>
+
     <div class="zd-extra-row">
       <div class="zd-extra"><span class="zd-extra-lbl">Area</span><span class="zd-extra-val">${z.area.toLocaleString()} km²</span></div>
       <div class="zd-extra"><span class="zd-extra-lbl">Depth</span><span class="zd-extra-val">${z.depth}m</span></div>
@@ -355,6 +424,26 @@ function injectListDetail(z, afterItem) {
   `;
   afterItem.insertAdjacentElement('afterend', det);
   setTimeout(() => det.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 60);
+}
+
+// ── Sub-factor toggle handler ─────────────────────────
+function toggleSF(type) {
+  const panel  = document.getElementById(`sf-${type}`);
+  const arrow  = document.getElementById(`sf-arrow-${type}`);
+  const other  = type === 'richness' ? 'pressure' : 'richness';
+  const oPanel = document.getElementById(`sf-${other}`);
+  const oArrow = document.getElementById(`sf-arrow-${other}`);
+
+  // Collapse the other one first
+  if (oPanel && oPanel.classList.contains('sf-open')) {
+    oPanel.classList.remove('sf-open');
+    if (oArrow) oArrow.textContent = '▾';
+  }
+
+  if (!panel) return;
+  const isOpen = panel.classList.toggle('sf-open');
+  if (arrow) arrow.textContent = isOpen ? '▴' : '▾';
+  openSubfactor = isOpen ? type : null;
 }
 
 // ── Zone List (right panel) ───────────────────────────
@@ -369,6 +458,8 @@ function renderZoneList() {
 
   filtered.forEach(z => {
     const c    = zoneColors(z);
+    const sr   = srScore(z).toFixed(2);
+    const fp   = fpScore(z).toFixed(2);
     const item = document.createElement('div');
     item.className = 'zl-item' + (selectedZone?.id === z.id ? ' zl-active' : '');
     item.id = `zli-${z.id}`;
@@ -377,7 +468,7 @@ function renderZoneList() {
       <span class="zl-id">${z.id}</span>
       <div class="zl-info">
         <div class="zl-name">${z.name}</div>
-        <div class="zl-rp">R ${z.speciesRichness}/10 · P ${z.fishingPressure}/10</div>
+        <div class="zl-rp">R ${sr}/10 · P ${fp}/10</div>
       </div>
     `;
     item.addEventListener('click', () => {
@@ -386,7 +477,11 @@ function renderZoneList() {
         document.getElementById('zl-inline-detail').remove();
         selectedZone = null;
         item.classList.remove('zl-active');
-        if (globe) updateGlobeData();
+        if (globe) {
+          // Resume auto-rotation on deselect
+          globe.controls().autoRotate = true;
+          updateGlobeData();
+        }
         return;
       }
       selectedZone = z;
@@ -394,6 +489,8 @@ function renderZoneList() {
       item.classList.add('zl-active');
       injectListDetail(z, item);
       if (globe) {
+        // Stop auto-rotation when a zone is selected
+        globe.controls().autoRotate = false;
         globe.pointOfView({ lat: z.lat, lng: z.lng, altitude: 1.5 }, 1000);
         updateGlobeData();
       }
@@ -462,8 +559,8 @@ function renderCriticalGrid() {
       <div class="cc-name">${z.name}</div>
       <div class="cc-habitat">${HABITAT_EMOJI[z.habitatType]||''} ${z.habitatType.replace(/_/g,' ')}</div>
       <div class="cc-metrics">
-        <div class="cc-metric"><div class="cc-metric-val">${z.speciesRichness}</div><div class="cc-metric-lbl">Richness</div></div>
-        <div class="cc-metric"><div class="cc-metric-val">${z.fishingPressure}</div><div class="cc-metric-lbl">Pressure</div></div>
+        <div class="cc-metric"><div class="cc-metric-val">${srScore(z).toFixed(2)}</div><div class="cc-metric-lbl">Richness</div></div>
+        <div class="cc-metric"><div class="cc-metric-val">${fpScore(z).toFixed(2)}</div><div class="cc-metric-lbl">Pressure</div></div>
         <div class="cc-metric"><div class="cc-metric-val">${(z.area/1000).toFixed(0)}k</div><div class="cc-metric-lbl">km²</div></div>
       </div>
       <div class="cc-footer">
@@ -569,7 +666,11 @@ function renderGapAnalysis() {
             <div class="bento-stat-lbl">Area</div>
           </div>
           <div class="bento-stat">
-            <div class="bento-stat-val">${z.fishingPressure}/10</div>
+            <div class="bento-stat-val">${srScore(z).toFixed(2)}/10</div>
+            <div class="bento-stat-lbl">Richness</div>
+          </div>
+          <div class="bento-stat">
+            <div class="bento-stat-val">${fpScore(z).toFixed(2)}/10</div>
             <div class="bento-stat-lbl">Pressure</div>
           </div>
         </div>
@@ -758,9 +859,26 @@ async function loadData() {
     const data = await res.json();
     zones = data.zones;
   } catch {
-    zones = FALLBACK_DATA.zones;            // file:// protocol fallback
+    // Apply small decimal offsets so composites look natural (not .00/.33/.67)
+    const d = [0.1,-0.1,0.2,-0.2,0.1,0.3,-0.1,0.2,-0.2,0.1,0.3,-0.1,0.2,0.1,-0.2,0.3,0.1,-0.1,0.2,-0.3,0.1,0.3,-0.1,0.2,-0.2,0.1,0.3,-0.1,0.2,-0.3];
+    zones = FALLBACK_DATA.zones.map((z, i) => {
+      const o = d[i];
+      return {
+        ...z,
+        speciesRichness: {
+          habitatComplexity:      Math.min(10, +(z.speciesRichness.habitatComplexity      + o + 0.1).toFixed(1)),
+          resourceAvailability:   Math.min(10, +(z.speciesRichness.resourceAvailability   + o - 0.1).toFixed(1)),
+          stability:              Math.min(10, +(z.speciesRichness.stability               + o + 0.2).toFixed(1))
+        },
+        fishingPressure: {
+          ...z.fishingPressure,
+          effort:    Math.min(10, +(z.fishingPressure.effort    + o + 0.2).toFixed(1)),
+          frequency: Math.min(10, +(z.fishingPressure.frequency + o - 0.1).toFixed(1))
+        }
+      };
+    });
   }
-  loadState(zones);   // merge persisted MPA overrides
+  loadState(zones);
   initApp();
 }
 
@@ -851,22 +969,24 @@ function initScrollNav() {
 
 // ── Floating Particles ────────────────────────────────
 function initParticles() {
-  const container = document.getElementById('particles-container');
-  if (!container) return;
-  for (let i = 0; i < 40; i++) {
-    const p = document.createElement('div');
-    p.className = 'particle';
-    p.style.left = Math.random() * 100 + '%';
-    const size = Math.random() * 6 + 2;
-    p.style.width = size + 'px';
-    p.style.height = size + 'px';
-    p.style.animationDuration = (Math.random() * 10 + 10) + 's';
-    p.style.animationDelay = (Math.random() * -15) + 's';
-    p.style.setProperty('--drift', (Math.random() * 200 - 100) + 'px');
-    // Drastically lower opacity so they don't overshadow the 4k background image
-    p.style.setProperty('--max-opacity', Math.random() * 0.15 + 0.05);
-    container.appendChild(p);
-  }
+  const containers = document.querySelectorAll('.particles-container');
+  containers.forEach(container => {
+    const count = parseInt(container.dataset.count) || 40;
+    for (let i = 0; i < count; i++) {
+      const p = document.createElement('div');
+      p.className = 'particle';
+      p.style.left = Math.random() * 100 + '%';
+      const size = Math.random() * 6 + 2;
+      p.style.width = size + 'px';
+      p.style.height = size + 'px';
+      p.style.animationDuration = (Math.random() * 10 + 10) + 's';
+      p.style.animationDelay = (Math.random() * -15) + 's';
+      p.style.setProperty('--drift', (Math.random() * 200 - 100) + 'px');
+      // Drastically lower opacity so they don't overshadow the 4k background image
+      p.style.setProperty('--max-opacity', Math.random() * 0.15 + 0.05);
+      container.appendChild(p);
+    }
+  });
 }
 
 // ── 3D Card Tilt ──────────────────────────────────────
@@ -993,6 +1113,17 @@ document.addEventListener('DOMContentLoaded', () => {
   restoreTheme();
   loadData();
   
+  // Wait for video to load before starting animations
+  const video = document.getElementById('hero-video');
+  const hero = document.getElementById('hero');
+  if (video && hero) {
+    if (video.readyState >= 3) {
+      hero.classList.add('video-loaded');
+    } else {
+      video.addEventListener('canplay', () => hero.classList.add('video-loaded'));
+    }
+  }
+
   // Initialize UI features
   if (typeof initNavbar === 'function') initNavbar();
   if (typeof initScrollNav === 'function') initScrollNav();
