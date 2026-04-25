@@ -90,8 +90,8 @@ function srScore(z) {
   return Math.min(10, raw);
 }
 
-// Ranking score: pressure-biased (0.6) so most-fished zones surface first in Gap Analysis
-const score = z => parseFloat(((srScore(z) * 0.4 + fpScore(z) * 0.6) * 10).toFixed(2));
+// Ranking score: richness-biased (0.6) so most biodiverse zones surface first
+const score = z => parseFloat(((srScore(z) * 0.6 + fpScore(z) * 0.4) * 10).toFixed(2));
 
 // ── Custom Smooth Scroll (fixed 0.75s duration) ──────
 function smoothScrollTo(targetEl, duration = 750) {
