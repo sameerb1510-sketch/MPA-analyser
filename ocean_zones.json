@@ -84,7 +84,7 @@
       "id": "Z13", "name": "Coral Triangle", "gridX": 0, "gridY": 2, "lat": -5, "lng": 120,
       "speciesRichness": { "habitatComplexity": 9.8, "resourceAvailability": 10.0, "stability": 9.9 },
       "fishingPressure": { "effort": 9.2, "frequency": 8.9, "gearImpact": "trawling" },
-      "mpaStatus": true, "area": 9000, "depth": 200, "habitatType": "coral_reef"
+      "mpaStatus": false, "area": 9000, "depth": 200, "habitatType": "coral_reef"
     },
     {
       "id": "Z14", "name": "Philippine Sea", "gridX": 1, "gridY": 2, "lat": 15, "lng": 130,
@@ -96,7 +96,7 @@
       "id": "Z15", "name": "South China Sea", "gridX": 2, "gridY": 2, "lat": 12, "lng": 115,
       "speciesRichness": { "habitatComplexity": 8.1, "resourceAvailability": 7.9, "stability": 8.3 },
       "fishingPressure": { "effort": 9.8, "frequency": 10.0, "gearImpact": "trawling" },
-      "mpaStatus": true, "area": 11000, "depth": 350, "habitatType": "coral_reef"
+      "mpaStatus": false, "area": 11000, "depth": 350, "habitatType": "coral_reef"
     },
     {
       "id": "Z16", "name": "Indian Ocean Mid", "gridX": 3, "gridY": 2, "lat": -15, "lng": 75,
@@ -150,7 +150,7 @@
       "id": "Z24", "name": "Red Sea", "gridX": 5, "gridY": 3, "lat": 20, "lng": 38,
       "speciesRichness": { "habitatComplexity": 9.1, "resourceAvailability": 7.2, "stability": 8.3 },
       "fishingPressure": { "effort": 8.2, "frequency": 7.1, "gearImpact": "nets" },
-      "mpaStatus": true, "area": 9500, "depth": 300, "habitatType": "coral_reef"
+      "mpaStatus": false, "area": 9500, "depth": 300, "habitatType": "coral_reef"
     },
     {
       "id": "Z25", "name": "S. Pacific Gyre", "gridX": 0, "gridY": 4, "lat": -40, "lng": -120,
