@@ -5,6 +5,139 @@
 
 'use strict';
 
+// =====================================================
+//  AUTH SYSTEM
+// =====================================================
+
+const AUTH_KEY = 'mpa-auth-user';
+
+// ── Open / Close ──────────────────────────────────────
+function openAuthModal() {
+  const user = getAuthUser();
+  if (user) { logoutAuth(); return; }
+  document.getElementById('auth-overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  setTimeout(() => document.getElementById('login-email')?.focus(), 350);
+}
+
+function closeAuthModal(e) {
+  if (e && e.target !== document.getElementById('auth-overlay')) return;
+  document.getElementById('auth-overlay').classList.remove('open');
+  document.body.style.overflow = '';
+  clearAuthErrors();
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    document.getElementById('auth-overlay').classList.remove('open');
+    document.body.style.overflow = '';
+  }
+});
+
+// ── Tab switch ────────────────────────────────────────
+function switchAuthTab(tab) {
+  const isLogin = tab === 'login';
+  document.getElementById('tab-login') .classList.toggle('active', isLogin);
+  document.getElementById('tab-signup').classList.toggle('active', !isLogin);
+  document.getElementById('form-login') .classList.toggle('auth-form--hidden', !isLogin);
+  document.getElementById('form-signup').classList.toggle('auth-form--hidden', isLogin);
+  clearAuthErrors();
+}
+
+// ── Storage helpers ───────────────────────────────────
+function getAuthUser() {
+  try { return JSON.parse(localStorage.getItem(AUTH_KEY)); } catch { return null; }
+}
+function setAuthUser(user) {
+  localStorage.setItem(AUTH_KEY, JSON.stringify(user));
+}
+function clearAuthErrors() {
+  ['login-error', 'signup-error'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) { el.textContent = ''; el.classList.remove('visible'); }
+  });
+}
+function showAuthError(id, msg) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.textContent = msg;
+  el.classList.add('visible');
+}
+
+// ── Handlers ─────────────────────────────────────────
+function handleLogin(e) {
+  e.preventDefault();
+  const email    = document.getElementById('login-email').value.trim();
+  const password = document.getElementById('login-password').value;
+
+  const users = JSON.parse(localStorage.getItem('mpa-users') || '[]');
+  const match = users.find(u => u.email === email && u.password === password);
+
+  if (!match) {
+    showAuthError('login-error', 'Incorrect email or password.');
+    return;
+  }
+
+  setAuthUser({ name: match.name, email: match.email });
+  onAuthSuccess(match.name);
+}
+
+function handleSignup(e) {
+  e.preventDefault();
+  const name     = document.getElementById('signup-name').value.trim();
+  const email    = document.getElementById('signup-email').value.trim();
+  const password = document.getElementById('signup-password').value;
+
+  if (password.length < 8) {
+    showAuthError('signup-error', 'Password must be at least 8 characters.');
+    return;
+  }
+
+  const users = JSON.parse(localStorage.getItem('mpa-users') || '[]');
+  if (users.find(u => u.email === email)) {
+    showAuthError('signup-error', 'An account with this email already exists.');
+    return;
+  }
+
+  users.push({ name, email, password });
+  localStorage.setItem('mpa-users', JSON.stringify(users));
+  setAuthUser({ name, email });
+  onAuthSuccess(name);
+}
+
+function onAuthSuccess(name) {
+  document.getElementById('auth-overlay').classList.remove('open');
+  document.body.style.overflow = '';
+  updateAuthNavBtn();
+  showToast(`Welcome, ${name}!`);
+}
+
+function logoutAuth() {
+  localStorage.removeItem(AUTH_KEY);
+  updateAuthNavBtn();
+  showToast('Logged out successfully.');
+}
+
+function updateAuthNavBtn() {
+  const user  = getAuthUser();
+  const btn   = document.getElementById('nav-auth-btn');
+  const label = document.getElementById('nav-auth-label');
+  if (!btn || !label) return;
+  if (user) {
+    const initials = user.name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+    label.textContent = initials;
+    btn.title = `Logged in as ${user.name} — click to log out`;
+    btn.classList.add('logged-in');
+  } else {
+    label.textContent = 'Log In';
+    btn.title = 'Login or create an account';
+    btn.classList.remove('logged-in');
+  }
+}
+
+// Restore session on load
+document.addEventListener('DOMContentLoaded', updateAuthNavBtn);
+
 // ── Global State ──────────────────────────────────────
 let zones           = [];
 let selectedZone    = null;
@@ -421,9 +554,174 @@ function injectListDetail(z, afterItem) {
       <div class="zd-extra"><span class="zd-extra-lbl">Habitat</span><span class="zd-extra-val">${z.habitatType.replace(/_/g,' ')}</span></div>
     </div>
     <button class="protect-btn ${btnClass}" id="protect-btn" onclick="toggleProtection()">${btnLabel}</button>
+
+    <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(0,212,255,0.1);">
+      <div style="font-size: 10px; color: var(--txt-3); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;">15-Year Projection</div>
+      <div style="position: relative; height: 180px; width: 100%;">
+        <canvas id="inline-sim-chart"></canvas>
+      </div>
+    </div>
   `;
   afterItem.insertAdjacentElement('afterend', det);
   setTimeout(() => det.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 60);
+
+  // Render the chart
+  renderInlineChart(z);
+}
+
+let inlineChartInstance = null;
+
+/**
+ * WITH MPA — Logistic growth toward carrying capacity K.
+ * B(t+1) = B(t) + r · B(t) · (1 - B(t)/K)
+ *
+ * The (1 - B/K) term acts as a natural brake: growth slows as B approaches K,
+ * producing a smooth S-curve with no dip and no overshoot.
+ *
+ * @param {number} B0    - initial biodiversity
+ * @param {number} r     - growth rate [0.05 – 0.15]
+ * @param {number} K     - carrying capacity (~1.5× to 2× current richness)
+ * @param {number} steps - years to simulate
+ */
+function simWithMPA(B0, r, K, steps) {
+  const series = [B0];
+  let B = B0;
+  for (let year = 1; year <= steps; year++) {
+    const growth = r * B * (1 - B / K);
+    B = Math.min(K, B + growth);
+    series.push(B);
+  }
+  return series;
+}
+
+/**
+ * WITHOUT MPA — Pressure-driven steady decline.
+ * B(t+1) = B(t) - B(t) · (Pressure / 100) · d
+ *
+ * Pressure is the raw fpScore (0–10 scale) → dividing by 100 makes it a
+ * fractional annual loss (e.g. pressure=5.33 → ~2.67% loss/year at d=0.5).
+ * Never hits zero instantly; decline slows naturally as B decreases.
+ *
+ * @param {number} B0       - initial biodiversity
+ * @param {number} pressure - raw fishing pressure score (0–10)
+ * @param {number} d        - decay constant
+ * @param {number} steps    - years to simulate
+ */
+function simNoMPA(B0, pressure, d, steps) {
+  const series = [B0];
+  let B = B0;
+  for (let year = 1; year <= steps; year++) {
+    const nextB = B - B * (pressure / 100) * d;
+    B = Math.max(0, nextB);
+    series.push(B);
+  }
+  return series;
+}
+
+function renderInlineChart(z) {
+  const ctx = document.getElementById('inline-sim-chart');
+  if (!ctx || typeof Chart === 'undefined') return;
+
+  if (inlineChartInstance) inlineChartInstance.destroy();
+
+  // ── Constants ──────────────────────────────────────────────────────────────
+  const STEPS = 15;
+
+  // ── B0: starting biodiversity on 0-10 scale (e.g. 6.53) ──────────────────
+  const B0 = srScore(z);
+
+  // ── K: carrying capacity ≈ 1.75× current richness ─────────────────────────
+  // Realistic cap between 1.5× and 2×: zone at 6.53 → K ≈ 11.4
+  const K = Math.min(10, B0 * 1.75);
+
+  // ── r: growth rate = 0.1 (slow, realistic S-curve) ────────────────────────
+  const r = 0.1;
+
+  // ── pressure: raw fpScore (0-10) from zone fishing data ───────────────────
+  // Dividing by 100 in the formula → fractional annual loss (~2.67%/yr at 5.33)
+  const pressure = fpScore(z);
+
+  // ── d: decay constant = 0.5 ───────────────────────────────────────────────
+  const d = 0.5;
+
+  // ── Run both scenarios — both start at same B0 ────────────────────────────
+  const withMpaData = simWithMPA(B0, r, K,        STEPS); // B_MPA(0)   = B0
+  const noMpaData   = simNoMPA  (B0, pressure, d, STEPS); // B_noMPA(0) = B0
+
+  const labels = Array.from({ length: STEPS + 1 }, (_, i) => i);
+
+  Chart.defaults.color = '#88A0C0';
+  Chart.defaults.font.family = 'Inter';
+
+  inlineChartInstance = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        {
+          label: 'With MPA',
+          data: withMpaData,
+          borderColor: '#00FFD1',
+          backgroundColor: 'rgba(0, 255, 209, 0.12)',
+          borderWidth: 2.5,
+          pointRadius: 0,
+          pointHoverRadius: 4,
+          fill: true,
+          tension: 0.4
+        },
+        {
+          label: 'No MPA',
+          data: noMpaData,
+          borderColor: '#FF6B6B',
+          backgroundColor: 'rgba(255, 107, 107, 0.07)',
+          borderWidth: 2,
+          borderDash: [5, 4],
+          pointRadius: 0,
+          pointHoverRadius: 4,
+          fill: true,
+          tension: 0.4
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: 'rgba(4, 13, 26, 0.95)',
+          titleColor: '#fff',
+          bodyColor: '#88A0C0',
+          borderColor: '#1D2B45',
+          borderWidth: 1,
+          padding: 8,
+          displayColors: true,
+          boxPadding: 3,
+          callbacks: {
+            title: items => 'Year ' + items[0].label,
+            label: item  => ` ${item.dataset.label}: ${item.parsed.y.toFixed(1)}`
+          }
+        }
+      },
+      scales: {
+        x: {
+          display: true,
+          title: { display: true, text: 'Years', color: '#88A0C0', font: { size: 9 } },
+          grid: { display: false },
+          ticks: { maxTicksLimit: 6, font: { size: 9 } }
+        },
+        y: {
+          display: true,
+          title: { display: true, text: 'Species Richness Index', color: '#88A0C0', font: { size: 9 } },
+          grid: { color: 'rgba(255,255,255,0.04)' },
+          min: 0,
+          max: 10,
+          ticks: { maxTicksLimit: 5, font: { size: 9 } }
+        }
+      }
+    }
+  });
 }
 
 // ── Sub-factor toggle handler ─────────────────────────
@@ -749,6 +1047,7 @@ function initNavbar() {
     ['map-section',       $('nav-map')],
     ['critical-section',  $('nav-critical')],
     ['gap-section',       $('nav-gap')],
+    ['simulation-section', $('nav-sim')],
   ];
 
   // Intercept nav link clicks → custom 0.75s scroll
@@ -942,7 +1241,7 @@ function animateStatCards() {
 // ── Scroll Dot Nav ────────────────────────────────────
 function initScrollNav() {
   const dots     = document.querySelectorAll('.snav-dot');
-  const sections = ['hero','overview','map-section','critical-section','gap-section'];
+  const sections = ['hero','overview','map-section','critical-section','gap-section','simulation-section'];
 
   dots.forEach(dot => {
     dot.addEventListener('click', () => {
@@ -1026,7 +1325,95 @@ function initApp() {
   initParticles();
   initCardTilt();
   initSectionFades();
+  initSimulationChart();
   setTimeout(animateHeroCounters, 800);
+}
+
+// ── Simulation Chart ──────────────────────────────────
+function initSimulationChart() {
+  const ctx = document.getElementById('mpa-simulation-chart');
+  if (!ctx || typeof Chart === 'undefined') return;
+
+  const years = Array.from({length: 21}, (_, i) => `Year ${i}`);
+  const baselineData = years.map((_, i) => 80 - (i * 1.5));
+  const mpaData = years.map((_, i) => {
+    if (i < 3) return 80 - (i * 0.5);
+    if (i < 12) return 80 - 1.5 + ((i - 2) * 3.5);
+    return 105 + Math.log(i - 10) * 5;
+  });
+
+  try {
+    new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: years,
+      datasets: [
+        {
+          label: 'With MPA (Recovery)',
+          data: mpaData,
+          borderColor: '#00FFD1',
+          backgroundColor: 'rgba(0, 255, 209, 0.1)',
+          borderWidth: 3,
+          pointRadius: 0,
+          pointHoverRadius: 6,
+          fill: true,
+          tension: 0.4
+        },
+        {
+          label: 'No MPA (Baseline)',
+          data: baselineData,
+          borderColor: '#FF6B6B',
+          borderWidth: 2,
+          borderDash: [5, 5],
+          pointRadius: 0,
+          pointHoverRadius: 6,
+          fill: false,
+          tension: 0.4
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: {
+        mode: 'index',
+        intersect: false,
+      },
+      plugins: {
+        legend: {
+          position: 'top',
+          labels: { color: '#88A0C0', font: { family: 'Inter', size: 13 } }
+        },
+        tooltip: {
+          backgroundColor: 'rgba(4, 13, 26, 0.9)',
+          titleColor: '#fff',
+          bodyColor: '#88A0C0',
+          borderColor: '#1D2B45',
+          borderWidth: 1,
+          padding: 12,
+          displayColors: true,
+          boxPadding: 4
+        }
+      },
+      scales: {
+        x: {
+          title: { display: true, text: 'Time (Years)', color: '#88A0C0', font: { family: 'Inter' } },
+          grid: { color: 'rgba(255, 255, 255, 0.05)' },
+          ticks: { color: '#88A0C0', maxTicksLimit: 10 }
+        },
+        y: {
+          title: { display: true, text: 'Biodiversity Richness', color: '#88A0C0', font: { family: 'Inter' } },
+          grid: { color: 'rgba(255, 255, 255, 0.05)' },
+          ticks: { color: '#88A0C0' },
+          min: 40,
+          max: 130
+        }
+      }
+    }
+  });
+  } catch (err) {
+    console.error("Chart.js failed to initialize:", err);
+  }
 }
 
 // ── Scroll-driven Section Darkening ───────────────────
@@ -1036,7 +1423,8 @@ function initSectionFades() {
     document.getElementById('overview-wrapper'),
     document.getElementById('map-section'),
     document.getElementById('critical-section'),
-    document.getElementById('gap-section')
+    document.getElementById('gap-section'),
+    document.getElementById('simulation-section')
   ].filter(Boolean);
 
   function onScroll() {
